@@ -142,7 +142,8 @@ public:
         return ret;
     }
 
-    // wtaf
+    // LU decomposition
+    // https://en.wikipedia.org/wiki/LU_decomposition
     matrix invert(bool *ok, mem_t tol) {
 
         static_assert(Rows == Cols, "Cannot invert a non-square matrix!");
