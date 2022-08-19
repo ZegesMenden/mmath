@@ -4,23 +4,6 @@
 
 namespace mmath {
 
-template<class T, int size = 1>
-class array {
-
-public:
-
-    typedef T mem_t;
-    mem_t mem[size];
-
-    const static int Size = size;
-
-    array() = default;
-    
-    mem_t  operator()(int index) const { return(mem[index]); }
-    mem_t &operator()(int index)       { return(mem[index]); }
-
-};
-
 template<class T, int rows, int cols = 1>
 class matrix {
 
