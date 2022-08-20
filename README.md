@@ -1,2 +1,2 @@
 # mmath
-template linear algebra library for arduino
+template based linear algebra library for arduino
