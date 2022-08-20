@@ -27,10 +27,12 @@ public:
         if ( src < 0 || dest < 0 || src > Rows || dest > Rows ) { return false; } 
 
         mem_t tmp;
+        int destCols = dest*Cols;
+        int srcCols = src*Cols;
         for (int c = 0; c < Cols; c++) {
-            tmp = mem[dest*Cols+c];
-            mem[dest*Cols+c] = mem[src*Cols+c];
-            mem[src*Cols+c] = tmp;
+            tmp = mem[destCols+c];
+            mem[destCols+c] = mem[src*Cols+c];
+            mem[srcCols+c] = tmp;
         }
 
         return true;
@@ -38,9 +40,8 @@ public:
 
     // assignment
     matrix &operator=(const matrix &other) {
-        if( Rows == other.Rows && Cols == other.Cols ) {
-            memcpy(mem, other.mem, (Rows*Cols)*sizeof(mem_t));
-        }
+        static_assert(Rows == other.Rows && Cols == other.Cols, "Matrices are not of equal size!");
+        memcpy(mem, other.mem, (Rows*Cols)*sizeof(mem_t));
         return *this;
     }
 
@@ -118,7 +119,7 @@ public:
                 ret(i, j) = sum;
         
             }
-        }        
+        }
 
         return ret;
     }
