@@ -30,9 +30,8 @@ void __mat_mul_scalar(T *mem, T scalar, int size) {
 template <class T = float>
 void __mat_transpose(const T *mem, T *ret, int rows, int cols) {
     for ( int i = 0; i < rows; i++ ) {
-        int i_scalar = i * cols;
         for ( int j = 0; j < cols; j++ ) {
-            ret[j * i_scalar + i] = mem[i_scalar + j];
+            ret[j * rows + i] = mem[i * cols + j];
         }
     }
 }
@@ -231,6 +230,16 @@ public:
     // no clue how this works, but it does
     matrix() = default;
 
+    static matrix<T, _rows, _cols> eye() {
+        matrix<T, _rows, _cols> ret = {0};
+
+        // Set diagonal elements to 1
+        for (int i = 0; i < rows; i++)
+            for ( int j = 0; j < cols; j++ )
+                ret.mem[i * cols + j] = (T)(i == j);
+
+                return ret;
+    }
     
 	// element access and assignment
 	T  operator()(int row, int col = 0) const { return(mem[(row * cols + col)]); }
@@ -272,22 +281,37 @@ public:
 	const matrix operator-(const matrix &other) const {
 		return matrix(*this) -= other;
 	}
-	
+
+    
 	template<int oprows = 1, int opcols = 1>
-	const matrix<T, rows, oprows> operator*(const matrix<T, opcols, oprows> &other) const {
+	const matrix<T, rows, opcols> operator*(const matrix<T, oprows, opcols> &other) const {
         static_assert(cols == other.rows, "Matrices are not of equal size!");
-		matrix<T, opcols, oprows> ret;
+		matrix<T, rows, opcols> ret;
         __mat_mul(mem, other.mem, ret.mem, rows, cols, other.rows, other.cols);
 		return ret;
 	}
+
+    matrix &operator*=(const matrix &other) {
+        static_assert(cols == other.rows, "Matrices are not of equal size!");
+        matrix<T, rows, other.cols> ret;
+        __mat_mul(mem, other.mem, ret.mem, rows, cols, other.rows, other.cols);
+        __mat_assign(mem, ret.mem, mem_size);
+        return *this;
+    }
 
 	matrix &operator*=(T scalar) {
 		__mat_mul_scalar(mem, scalar, mem_size);
 		return *this;
 	}
 
-	matrix operator~() {
-		matrix<T, rows, cols> ret;
+    const matrix operator*(T scalar) const {
+        matrix<T, rows, cols> ret = *this;
+        __mat_mul_scalar(ret.mem, scalar, mem_size);
+        return ret;
+    }
+
+    matrix<T, cols, rows> operator~() const {
+		matrix<T, cols, rows> ret;
 		__mat_transpose(mem, ret.mem, rows, cols);
 		return ret;
 	}
@@ -295,8 +319,10 @@ public:
     matrix invert(bool *ok, T tol = 1e-9) {
         static_assert(rows == cols, "Cannot invert a non-square matrix");
         matrix<T, rows, cols> A;
+        
         matrix<T, rows, cols> ret;
         *ok = __mat_inv(mem, A.mem, ret.mem, rows, cols, tol);
+
         return ret;
     }
 
